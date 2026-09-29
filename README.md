@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Delimenu × Qitchen: ejemplo de menú con la API de Delimenu
 
-## Getting Started
+Un menú de sushi hecho con **Next.js** que lee sus datos de la
+[API pública de Delimenu](https://delimenu.co/developers). El diseño replica la
+plantilla de Framer [Qitchen](https://qitchen-template.framer.website/menu), y el
+contenido es el del restaurante [Qitchen en Delimenu](https://delimenu.co/qitchen).
 
-First, run the development server:
+Es el segundo ejemplo. El primero, con otro diseño, es
+[delimenu-maison-example](https://github.com/JuandaGarcia/delimenu-maison-example).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Cómo funciona
+
+Toda la integración está en [`lib/delimenu.ts`](lib/delimenu.ts). Es un único `fetch`:
+
+```ts
+const res = await fetch('https://delimenu.co/api/v1/menus/qitchen', {
+  next: { revalidate: 300 },
+})
+const { restaurant, categories } = await res.json()
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Sin API key:** leer el menú publicado es público.
+- **Datos de la API:**
+  - Las pestañas y las secciones salen de `categories`.
+  - Cada fila (foto, nombre, precio y descripción) sale de `products`.
+  - La foto grande es `restaurant.banner_url`.
+  - "Book a table" abre WhatsApp al número del restaurante.
+- **Precios:** vienen en unidades mayores de la moneda del restaurante (`5` = US$5), nunca en centavos.
+- **Actualización:** la página se regenera como máximo cada 5 minutos (ISR).
+- **Errores:** si la API responde 404 (no existe) o 403 (restaurante sin plan activo), la página muestra "menú no disponible".
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Correrlo
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install
+pnpm dev
+```
 
-## Learn More
+Abre http://localhost:3000/menu. Para usar otro restaurante, copia `.env.example`
+a `.env.local` y cambia `DELIMENU_MENU`.
 
-To learn more about Next.js, take a look at the following resources:
+## Assets
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Fotos, logo y textura:** vienen de la plantilla Qitchen (Framer), que se usa con licencia.
+- **Fuentes:** Forum sale de Google Fonts. Satoshi sale de [Fontshare](https://www.fontshare.com/fonts/satoshi) (ITF Free Font License) y está en `app/fonts`.
